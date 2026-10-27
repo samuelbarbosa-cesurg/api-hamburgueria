@@ -1,0 +1,57 @@
+import * as produtoLogic from "../logic/produtoLogic.js";
+
+
+export async function obterProdutos(request, response) {
+    try{
+      const produto = await produtoLogic.obterProdutos(request.query);
+
+      if(produto.length === 0){
+          return response.status(404).json({mensagem: "Nenhum produto encontrado"})
+      }
+
+      return response.status(200).json(produto);
+    } catch (error) {
+      console.error(`Erro ao listar produto: ${error.message}`);
+      if(error instanceof Error) {
+          return response.status(400).json({
+              mensagem: error.message,
+          });
+      }
+
+      return response.status(500).json({
+          mensagem: "Erro interno do servidor",
+      });
+    }
+}
+
+export async function listarTarefas(request, response) {
+  try {
+    const tarefas = await produtoLogic.listarTarefas();
+
+    return response.status(200).json(tarefas);
+  } catch (error) {
+    console.error(`Erro ao listar tarefas: ${error.message}`);
+
+    return response.status(500).json({
+      mensagem: "Erro interno do servidor",
+    });
+  }
+}
+
+export async function cadastrarTarefa(request, response) {
+  try {
+    const novaTarefa = await produtoLogic.cadastrarTarefa(request.body ?? {});
+
+    return response.status(201).json(novaTarefa);
+  } catch (error) {
+    if (error) {
+      return response.status(400).json({ mensagem: error.message });
+    }
+
+    console.error(`Erro ao cadastrar tarefa: ${error.message}`);
+
+    return response.status(500).json({
+      mensagem: "Erro interno do servidor",
+    });
+  }
+}

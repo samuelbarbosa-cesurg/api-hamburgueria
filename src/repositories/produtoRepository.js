@@ -13,11 +13,11 @@ function mapearTarefa(linha) {
   };
 }
 
-// Retorna todas as tarefas ordenadas pelo id.
-export function listar() {
-  const tarefas = db.prepare("SELECT * FROM tarefas ORDER BY id").all();
+// Retorna todas os produtos ordenados pelo id.
+export async function listar() {
+  const produtos = db.prepare("SELECT * FROM produtos ORDER BY id").all();
 
-  return tarefas.map(mapearTarefa);
+  return produtos.map(mapearTarefa);
 }
 
 // Retorna uma tarefa pelo id ou null quando ela não existe.

@@ -1,6 +1,6 @@
 import express from "express";
 import { fileURLToPath } from "node:url";
-import * as tarefaController from "./controllers/tarefaController.js";
+import * as produtoController from "./controllers/produtoController.js";
 
 const app = express();
 const PORTA = Number(process.env.PORT || 3000);
@@ -26,9 +26,16 @@ app.use((request, response, next) => {
 
 app.use(express.json());
 
-app.get("/", tarefaController.obterTarefa);
-app.get("/tarefas", tarefaController.listarTarefas);
-app.post("/tarefas", tarefaController.cadastrarTarefa);
+app.get("/produtos", produtoController.obterProdutos);
+app.get("/tarefas", produtoController.listarTarefas);
+app.post("/tarefas", produtoController.cadastrarTarefa);
+
+app.use((req, res, next) => {
+  res.status(404).json({
+    erro: 'Rota não encontrada',
+    status: 404
+  });
+});
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   app.listen(PORTA, () => {
