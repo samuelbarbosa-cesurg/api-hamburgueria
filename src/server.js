@@ -27,7 +27,7 @@ app.use((request, response, next) => {
 app.use(express.json());
 
 app.get("/produtos", produtoController.obterProdutos);
-app.get("/tarefas", produtoController.listarTarefas);
+app.get("/produtos/:id", produtoController.buscarProduto);
 app.post("/tarefas", produtoController.cadastrarTarefa);
 
 app.use((req, res, next) => {
