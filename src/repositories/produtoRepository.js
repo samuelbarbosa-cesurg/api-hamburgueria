@@ -82,3 +82,8 @@ export function remover(id) {
 
   return resultado.changes > 0;
 }
+
+export function pegarPreco(id) {
+   const resultado = db.prepare("SELECT preco FROM produtos WHERE id = ?").run(id);
+   return resultado;
+}

@@ -64,21 +64,3 @@ export async function listarTarefas(request, response) {
     });
   }
 }
-
-export async function cadastrarTarefa(request, response) {
-  try {
-    const novaTarefa = await produtoLogic.cadastrarTarefa(request.body ?? {});
-
-    return response.status(201).json(novaTarefa);
-  } catch (error) {
-    if (error) {
-      return response.status(400).json({ mensagem: error.message });
-    }
-
-    console.error(`Erro ao cadastrar tarefa: ${error.message}`);
-
-    return response.status(500).json({
-      mensagem: "Erro interno do servidor",
-    });
-  }
-}

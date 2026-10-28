@@ -1,6 +1,7 @@
 import express from "express";
 import { fileURLToPath } from "node:url";
 import * as produtoController from "./controllers/produtoController.js";
+import * as pedidoController from "./controllers/pedidoController.js";
 
 const app = express();
 const PORTA = Number(process.env.PORT || 3000);
@@ -28,7 +29,8 @@ app.use(express.json());
 
 app.get("/produtos", produtoController.obterProdutos);
 app.get("/produtos/:id", produtoController.buscarProduto);
-app.post("/tarefas", produtoController.cadastrarTarefa);
+app.post("/pedidos", pedidoController.cadastrarPedido);
+
 
 app.use((req, res, next) => {
   res.status(404).json({
