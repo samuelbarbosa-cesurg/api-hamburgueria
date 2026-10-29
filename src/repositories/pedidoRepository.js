@@ -60,6 +60,25 @@ export async function buscarPedidoPorId(pedidoId) {
   return pedido;
 }
 
+// Retorna os itens de um pedido junto com o nome de cada produto.
+export async function buscarItensPorPedidoId(pedidoId) {
+  return db
+    .prepare(
+      `
+      SELECT
+        itens_pedido.produtoId,
+        produtos.nome,
+        itens_pedido.quantidade,
+        itens_pedido.precoUnitario
+      FROM itens_pedido
+      INNER JOIN produtos ON produtos.id = itens_pedido.produtoId
+      WHERE itens_pedido.pedidoId = ?
+      ORDER BY itens_pedido.id;
+    `,
+    )
+    .all(pedidoId);
+}
+
 export async function alterarStatusPedido(pedidoId, novoStatus) {
   const resultado = db
     .prepare(

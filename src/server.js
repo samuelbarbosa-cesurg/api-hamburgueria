@@ -30,6 +30,7 @@ app.use(express.json());
 app.get("/produtos", produtoController.obterProdutos);
 app.get("/produtos/:id", produtoController.buscarProduto);
 app.get("/pedidos", pedidoController.listarPedidos);
+app.get("/pedidos/:id", pedidoController.buscarPedido);
 app.post("/pedidos", pedidoController.cadastrarPedido);
 app.patch("/pedidos/:id/status", pedidoController.alterarStatusPedido);
 

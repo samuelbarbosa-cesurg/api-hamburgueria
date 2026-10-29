@@ -94,6 +94,24 @@ export async function listarPedidos(status) {
     return await pedidoRepository.listar(status);
 }
 
+export async function buscarPedido(pedidoId) {
+    const pedido = await pedidoRepository.buscarPedidoPorId(pedidoId);
+
+    if (!pedido) {
+        return null;
+    }
+
+    const itens = await pedidoRepository.buscarItensPorPedidoId(pedidoId);
+
+    return {
+        id: pedido.id,
+        cliente: pedido.cliente,
+        status: pedido.status,
+        total: pedido.total,
+        itens: itens
+    };
+}
+
 export async function alterarStatusPedido(pedidoId, novoStatus) {
     if (!Pedido.STATUS.includes(novoStatus)) {
         throw new ErroValidacao("Status inválido. Os status válidos são: " + Pedido.STATUS.join(", "));

@@ -59,6 +59,28 @@ export async function listarPedidos(request, response) {
     }
 }
 
+export async function buscarPedido(request, response) {
+    try {
+        const pedidoId = Number(request.params.id);
+
+        if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
+            return response.status(400).json({ mensagem: "ID do pedido inválido" });
+        }
+
+        const pedido = await pedidoLogic.buscarPedido(pedidoId);
+
+        if (!pedido) {
+            return response.status(404).json({ mensagem: "Pedido não encontrado" });
+        }
+
+        return response.status(200).json(pedido);
+    } catch (error) {
+        console.error(`Erro ao buscar pedido: ${error.message}`);
+
+        return response.status(500).json({ mensagem: "Erro interno do servidor" });
+    }
+}
+
 export async function alterarStatusPedido(request, response) {
     try {
         const pedidoId = Number(request.params.id);

@@ -27,14 +27,14 @@ export async function obterProdutos(request, response) {
 export async function buscarProduto(request, response){
     try{
         const id = request.params.id;
-        if(typeof id !== undefined && id.trim() !== ''){
+        if(Number.isInteger(Number(id)) && Number(id) > 0){
             const produto = await produtoLogic.buscarProduto(id);
             if(!produto){
                 return response.status(404).json({mensagem: "Produto não encontrado"})
             }
             return response.status(200).json(produto);
         }else{
-            return response.status(400).json({mensagem: "O ID é obrigatório"})
+            return response.status(400).json({mensagem: "O ID do produto precisa ser um número"})
         }
     } catch (error) {
         console.error(`Erro ao listar produto: ${error.message}`);
