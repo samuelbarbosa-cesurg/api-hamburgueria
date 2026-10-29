@@ -93,7 +93,7 @@ export async function alterarStatusPedido(request, response) {
         const resultado = await pedidoLogic.alterarStatusPedido(pedidoId, novoStatus);
 
         if (resultado) {
-            return response.status(200).json({ mensagem: "Status do pedido alterado com sucesso" });
+            return response.status(200).json({ mensagem: `Status do pedido alterado para ${novoStatus}` });
         } else {
             return response.status(404).json({ mensagem: "Pedido não encontrado" });
         }
