@@ -78,6 +78,14 @@ export async function cadastrarPedido(body) {
   };
 }
 
+export async function listarPedidos(status) {
+    if (status !== undefined && !Pedido.STATUS.includes(status)) {
+        throw new ErroValidacao("Status inválido. Os status válidos são: " + Pedido.STATUS.join(", "));
+    }
+
+    return await pedidoRepository.listar(status);
+}
+
 export async function alterarStatusPedido(pedidoId, novoStatus) {
     if (!Pedido.STATUS.includes(novoStatus)) {
         throw new ErroValidacao("Status inválido. Os status válidos são: " + Pedido.STATUS.join(", "));

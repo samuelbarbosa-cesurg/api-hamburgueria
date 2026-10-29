@@ -2,8 +2,12 @@
 // As outras camadas trabalham apenas com objetos JavaScript.
 import db from "../database/conexao.js";
 
-// Retorna todas os pedidos ordenados pelo id.
-export async function listar() {
+// Retorna os pedidos ordenados pelo id, filtrando por status quando ele for informado.
+export async function listar(status) {
+  if (status) {
+    return db.prepare("SELECT * FROM pedidos WHERE status = ? ORDER BY id").all(status);
+  }
+
   return db.prepare("SELECT * FROM pedidos ORDER BY id").all();
 }
 

@@ -28,6 +28,23 @@ export async function cadastrarPedido(request, response) {
     }
 }
 
+export async function listarPedidos(request, response) {
+    try {
+        const pedidos = await pedidoLogic.listarPedidos(request.query.status);
+        return response.status(200).json(pedidos);
+    } catch (error) {
+        console.error(`Erro ao listar pedidos: ${error.message}`);
+
+        if(error instanceof ErroValidacao){
+            return response.status(400).json({
+                mensagem: error.message,
+            });
+        }
+
+        return response.status(500).json({ mensagem: "Erro interno do servidor" });
+    }
+}
+
 export async function alterarStatusPedido(request, response) {
     try {
         const pedidoId = Number(request.params.id);
