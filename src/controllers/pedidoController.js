@@ -1,4 +1,5 @@
 import * as pedidoLogic from "../logic/pedidoLogic.js";
+import { ErroValidacao } from "../models/erroValidacao.js";
 
 
 export async function cadastrarPedido(request, response) {
@@ -15,7 +16,7 @@ export async function cadastrarPedido(request, response) {
     } catch (error) {
         console.error(`Erro ao cadastrar pedido: ${error.message}`);
 
-        if(error instanceof Error){
+        if(error instanceof ErroValidacao){
             return response.status(400).json({
                 mensagem: error.message,
             });
