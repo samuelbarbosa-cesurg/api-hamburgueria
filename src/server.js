@@ -11,7 +11,7 @@ app.use((request, response, next) => {
   response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader(
     "Access-Control-Allow-Methods",
-    "GET,POST,DELETE,OPTIONS",
+    "GET,POST,PATCH,DELETE,OPTIONS",
   );
   response.setHeader(
     "Access-Control-Allow-Headers",
@@ -30,6 +30,7 @@ app.use(express.json());
 app.get("/produtos", produtoController.obterProdutos);
 app.get("/produtos/:id", produtoController.buscarProduto);
 app.post("/pedidos", pedidoController.cadastrarPedido);
+app.patch("/pedidos/:id/status", pedidoController.alterarStatusPedido);
 
 
 app.use((req, res, next) => {

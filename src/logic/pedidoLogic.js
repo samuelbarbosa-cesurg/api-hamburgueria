@@ -59,7 +59,6 @@ export async function cadastrarPedido(body) {
   const resultadoPedido = await pedidoRepository.cadastrarPedido(pedido);
   const pedidoId = Number(resultadoPedido.lastInsertRowid);
 
-  const itens = [];
   for (const itemValidado of itensValidados) {
     const item = new ItemPedido({
       pedidoId: pedidoId,
@@ -69,14 +68,31 @@ export async function cadastrarPedido(body) {
     });
 
     await pedidoRepository.cadastrarItemPedido(item);
-    itens.push(item);
   }
 
   return {
     id: pedidoId,
     cliente: pedido.cliente,
     status: pedido.status,
-    total: pedido.total,
-    itens: itens
+    total: pedido.total
   };
+}
+
+export async function alterarStatusPedido(pedidoId, novoStatus) {
+    if (!Pedido.STATUS.includes(novoStatus)) {
+        throw new ErroValidacao("Status inválido. Os status válidos são: " + Pedido.STATUS.join(", "));
+    }
+
+    const pedido = await pedidoRepository.buscarPedidoPorId(pedidoId);
+
+    if (!pedido) {
+        return false;
+    }
+
+    if (pedido.status === novoStatus) {
+        throw new ErroValidacao("O status do pedido já está definido como " + novoStatus);
+    }
+
+    await pedidoRepository.alterarStatusPedido(pedidoId, novoStatus);
+    return true;
 }

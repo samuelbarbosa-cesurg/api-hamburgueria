@@ -43,3 +43,29 @@ export async function cadastrarItemPedido(item) {
 
   return resultado;
 }
+
+export async function buscarPedidoPorId(pedidoId) {
+  const pedido = db
+    .prepare(
+      `
+      SELECT * FROM pedidos WHERE id = ?;
+    `,
+    )
+    .get(pedidoId);
+
+  return pedido;
+}
+
+export async function alterarStatusPedido(pedidoId, novoStatus) {
+  const resultado = db
+    .prepare(
+      `
+      UPDATE pedidos
+      SET status = ?
+      WHERE id = ?;
+    `,
+    )
+    .run(novoStatus, pedidoId);
+
+  return resultado.changes > 0;
+}

@@ -27,3 +27,32 @@ export async function cadastrarPedido(request, response) {
         });
     }
 }
+
+export async function alterarStatusPedido(request, response) {
+    try {
+        const pedidoId = Number(request.params.id);
+        const novoStatus = request.body?.status;
+
+        if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
+            return response.status(400).json({ mensagem: "ID do pedido inválido" });
+        }
+
+        const resultado = await pedidoLogic.alterarStatusPedido(pedidoId, novoStatus);
+
+        if (resultado) {
+            return response.status(200).json({ mensagem: "Status do pedido alterado com sucesso" });
+        } else {
+            return response.status(404).json({ mensagem: "Pedido não encontrado" });
+        }
+    } catch (error) {
+        console.error(`Erro ao alterar status do pedido: ${error.message}`);
+
+        if(error instanceof ErroValidacao){
+            return response.status(400).json({
+                mensagem: error.message,
+            });
+        }
+        
+        return response.status(500).json({ mensagem: "Erro interno do servidor" });
+    }
+}
