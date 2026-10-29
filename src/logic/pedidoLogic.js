@@ -1,14 +1,14 @@
 import { Pedido } from "../models/pedido.js";
 import { ItemPedido } from "../models/itemPedido.js";
 import { ErroValidacao } from "../models/erroValidacao.js";
+import { ErroNaoEncontrado } from "../models/erroNaoEncontrado.js";
+import { ErroConflito } from "../models/erroConflito.js";
 import * as produtoRepository from "../repositories/produtoRepository.js";
 import * as pedidoRepository from "../repositories/pedidoRepository.js";
 
 export async function cadastrarPedido(body) {
   const cliente = body.cliente;
-  if (typeof cliente !== "string" || cliente.trim() === "") {
-    throw new ErroValidacao("Para cadastrar um pedido é obrigatório informar um cliente");
-  }
+  Pedido.validarCliente(cliente);
 
   const itensBodyPedido = body.itens;
   if (!Array.isArray(itensBodyPedido) || itensBodyPedido.length === 0) {
@@ -22,11 +22,19 @@ export async function cadastrarPedido(body) {
   let valorTotal = 0;
 
   for (const itemBody of itensBodyPedido) {
+    if (!itemBody || typeof itemBody !== "object") {
+      throw new ErroValidacao("Cada item do pedido precisa ser um objeto com produtoId e quantidade!");
+    }
+
     const produtoId = Number(itemBody.produtoId);
     const quantidade = Number(itemBody.quantidade);
 
-    if (!Number.isInteger(quantidade) || quantidade <= 0) {
-      throw new ErroValidacao("A quantidade de cada item precisa ser um número inteiro maior que zero!");
+    if (itemBody.produtoId === null || itemBody.produtoId === "" || !Number.isInteger(produtoId)) {
+      throw new ErroValidacao("O produtoId de cada item precisa ser numérico!");
+    }
+
+    if (!Number.isInteger(quantidade) || quantidade < 1 || quantidade > 10) {
+      throw new ErroValidacao("A quantidade de cada item precisa ser um número inteiro de 1 a 10!");
     }
 
     if (produtosJaInformados.includes(produtoId)) {
@@ -35,11 +43,11 @@ export async function cadastrarPedido(body) {
 
     const produto = produtos.find((produto) => produto.id === produtoId);
     if (!produto) {
-      throw new ErroValidacao(`O produto ${itemBody.produtoId} não foi encontrado!`);
+      throw new ErroNaoEncontrado(`O produto ${produtoId} não foi encontrado!`);
     }
 
     if (!produto.disponivel) {
-      throw new ErroValidacao(`O produto ${produto.nome} não está disponível!`);
+      throw new ErroConflito(`O produto ${produto.nome} não está disponível!`);
     }
 
     produtosJaInformados.push(produtoId);
@@ -97,8 +105,8 @@ export async function alterarStatusPedido(pedidoId, novoStatus) {
         return false;
     }
 
-    if (pedido.status === novoStatus) {
-        throw new ErroValidacao("O status do pedido já está definido como " + novoStatus);
+    if (!Pedido.podeMudarStatus(pedido.status, novoStatus)) {
+        throw new ErroConflito(`Não é possível mudar o pedido de ${pedido.status} para ${novoStatus}`);
     }
 
     await pedidoRepository.alterarStatusPedido(pedidoId, novoStatus);

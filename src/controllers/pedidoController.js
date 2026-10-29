@@ -1,5 +1,7 @@
 import * as pedidoLogic from "../logic/pedidoLogic.js";
 import { ErroValidacao } from "../models/erroValidacao.js";
+import { ErroNaoEncontrado } from "../models/erroNaoEncontrado.js";
+import { ErroConflito } from "../models/erroConflito.js";
 
 
 export async function cadastrarPedido(request, response) {
@@ -18,6 +20,18 @@ export async function cadastrarPedido(request, response) {
 
         if(error instanceof ErroValidacao){
             return response.status(400).json({
+                mensagem: error.message,
+            });
+        }
+
+        if(error instanceof ErroNaoEncontrado){
+            return response.status(404).json({
+                mensagem: error.message,
+            });
+        }
+
+        if(error instanceof ErroConflito){
+            return response.status(409).json({
                 mensagem: error.message,
             });
         }
@@ -66,6 +80,12 @@ export async function alterarStatusPedido(request, response) {
 
         if(error instanceof ErroValidacao){
             return response.status(400).json({
+                mensagem: error.message,
+            });
+        }
+
+        if(error instanceof ErroConflito){
+            return response.status(409).json({
                 mensagem: error.message,
             });
         }
