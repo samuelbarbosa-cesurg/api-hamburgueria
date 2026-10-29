@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hamburgueria · front-end da API</title>
+<style>
+  :root {
+    --fundo: #f7f4ee;
+    --cartao: #ffffff;
+    --borda: #e6ded1;
+    --texto: #23201c;
+    --suave: #6f665b;
+    --destaque: #c2410c;
+    --destaque-escuro: #9a3412;
+    --ok-fundo: #e3f1e6;
+    --ok-texto: #1f6b3a;
+    --erro-fundo: #fbe3df;
+    --erro-texto: #9b2c1f;
+    --aviso-fundo: #fbefd2;
+    --aviso-texto: #7a4b00;
+    --mono: ui-monospace, "Cascadia Code", "Consolas", "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  header { background: #23201c; color: #f7f4ee; padding: 20px 24px; }
+  header .linha { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 26px; }
+  header p { margin: 4px 0 0; color: #c9bfb1; font-size: 14px; }
+  .estado-api { font-family: var(--mono); font-size: 13px; padding: 6px 12px; border-radius: 999px; background: #3a342d; }
+  .estado-api.on { background: #1f6b3a; }
+  .estado-api.off { background: #9b2c1f; }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+  section.bloco { background: var(--cartao); border: 1px solid var(--borda); border-radius: 14px; padding: 20px; }
+  h2 { margin: 0 0 4px; font-size: 20px; }
+  .sub { margin: 0 0 16px; color: var(--suave); font-size: 14px; }
+  .rota { font-family: var(--mono); font-size: 12px; color: var(--destaque-escuro); background: #fbefe4; padding: 2px 8px; border-radius: 6px; }
+  .categoria { margin: 18px 0 8px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--suave); }
+  .produtos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .produto { border: 1px solid var(--borda); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .produto.indisponivel { opacity: 0.75; background: #faf8f4; }
+  .produto .nome { font-weight: 600; }
+  .produto .preco { color: var(--suave); }
+  .produto .acoes { display: flex; gap: 8px; align-items: center; margin-top: auto; }
+  .etiqueta { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--aviso-fundo); color: var(--aviso-texto); align-self: flex-start; }
+  input, select, button { font: inherit; }
+  input[type="number"] { width: 64px; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px; }
+  input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid var(--borda); border-radius: 8px; }
+  button { border: 0; border-radius: 8px; padding: 8px 14px; background: var(--destaque); color: #fff; font-weight: 600; cursor: pointer; }
+  button:hover { background: var(--destaque-escuro); }
+  button.secundario { background: transparent; color: var(--destaque-escuro); border: 1px solid var(--destaque); }
+  button.secundario:hover { background: #fbefe4; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .lateral { display: flex; flex-direction: column; gap: 24px; position: sticky; top: 16px; }
+  .carrinho-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--borda); font-size: 15px; }
+  .carrinho-item button { padding: 2px 8px; font-size: 13px; }
+  .vazio { color: var(--suave); font-size: 14px; }
+  .total { display: flex; justify-content: space-between; margin: 12px 0; font-weight: 600; }
+  .total small { font-weight: 400; color: var(--suave); }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--suave); margin: 8px 0 4px; }
+  .aviso { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+  .aviso.ok { background: var(--ok-fundo); color: var(--ok-texto); }
+  .aviso.erro { background: var(--erro-fundo); color: var(--erro-texto); }
+  .aviso .codigo { font-family: var(--mono); font-weight: 700; }
+  .pedido { border: 1px solid var(--borda); border-radius: 12px; padding: 12px; margin-top: 10px; }
+  .pedido .topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .status { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status.recebido { background: #e7ecf5; color: #2c4a7a; }
+  .status.preparando { background: var(--aviso-fundo); color: var(--aviso-texto); }
+  .status.pronto { background: var(--ok-fundo); color: var(--ok-texto); }
+  .status.entregue { background: #e8e4dc; color: #5b5348; }
+  .status.cancelado { background: var(--erro-fundo); color: var(--erro-texto); }
+  .pedido ul { margin: 8px 0; padding-left: 18px; font-size: 14px; color: var(--suave); }
+  .pedido .botoes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pedido .botoes button { font-size: 13px; padding: 6px 10px; }
+  .buscar { display: flex; gap: 8px; }
+  .buscar input { width: 100px; }
+  .log { grid-column: 1 / -1; }
+  .log-lista { font-family: var(--mono); font-size: 13px; display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow: auto; }
+  .log-item { display: grid; grid-template-columns: 70px 60px 1fr; gap: 10px; padding: 8px 10px; border-radius: 8px; background: #faf8f4; border: 1px solid var(--borda); }
+  .log-item .metodo { font-weight: 700; }
+  .log-item .st { font-weight: 700; }
+  .log-item .st.s2 { color: var(--ok-texto); }
+  .log-item .st.s4, .log-item .st.s5, .log-item .st.s0 { color: var(--erro-texto); }
+  .log-item .detalhe { color: var(--suave); white-space: pre-wrap; word-break: break-word; }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+    .lateral { position: static; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="linha">
+    <div>
+      <h1>🍔 Hamburgueria</h1>
+      <p>Um front-end de verdade para a sua API: cada clique vira uma requisição HTTP.</p>
+    </div>
+    <span id="estado-api" class="estado-api">conectando...</span>
+  </div>
+</header>
+
+<main>
+  <section class="bloco">
+    <h2>Cardápio <span class="rota">GET /produtos</span></h2>
+    <p class="sub">Os produtos vêm do banco da sua API. Escolha a quantidade e adicione ao pedido.</p>
+    <div id="cardapio"><p class="vazio">Carregando...</p></div>
+  </section>
+
+  <div class="lateral">
+    <section class="bloco">
+      <h2>Seu pedido <span class="rota">POST /pedidos</span></h2>
+      <div id="carrinho"><p class="vazio">Nenhum item ainda.</p></div>
+      <div class="total"><span>Total <small>(estimado na tela)</small></span><span id="total-estimado">R$ 0,00</span></div>
+      <label for="cliente">Nome do cliente</label>
+      <input id="cliente" type="text" placeholder="Ex.: Ana" autocomplete="off">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button id="fazer-pedido" type="button">Fazer pedido</button>
+        <button id="limpar" type="button" class="secundario">Limpar</button>
+      </div>
+      <div id="aviso-pedido"></div>
+    </section>
+
+    <section class="bloco">
+      <h2>Acompanhar pedidos</h2>
+      <p class="sub">Busque um pedido pelo id <span class="rota">GET /pedidos/:id</span> e mude o status <span class="rota">PATCH /pedidos/:id/status</span>.</p>
+      <div class="buscar">
+        <input id="id-busca" type="number" min="1" placeholder="id">
+        <button id="buscar" type="button" class="secundario">Buscar</button>
+      </div>
+      <div id="aviso-acompanhar"></div>
+      <div id="pedidos"></div>
+    </section>
+  </div>
+
+  <section class="bloco log">
+    <h2>Requisições feitas</h2>
+    <p class="sub">O que a tela mandou para a API e o que voltou. É o mesmo que vocês viam no Simulador.</p>
+    <div id="log" class="log-lista"><p class="vazio">Nenhuma requisição ainda.</p></div>
+  </section>
+</main>
+
+<script>
+  // Endereço da API. Esta página é servida pela própria API,
+  // então basta o caminho ("/produtos"). Para abrir o arquivo direto,
+  // troque por "http://localhost:3000" (e a API precisa liberar CORS).
+  const API = "http://localhost:3000";
+
+  const STATUS_SEGUINTES = {
+    recebido: ["preparando", "cancelado"],
+    preparando: ["pronto"],
+    pronto: ["entregue"],
+    entregue: [],
+    cancelado: [],
+  };
+  const TODOS_STATUS = ["recebido", "preparando", "pronto", "entregue", "cancelado"];
+
+  let produtos = [];
+  const carrinho = new Map(); // produtoId -> quantidade
+  const pedidosNaTela = new Map(); // id -> pedido
+
+  const $ = (seletor) => document.querySelector(seletor);
+  const dinheiro = (valor) => Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  function texto(tag, conteudo, classe) {
+    const el = document.createElement(tag);
+    if (classe) el.className = classe;
+    el.textContent = conteudo;
+    return el;
+  }
+
+  // ---------- Toda requisição passa por aqui e aparece no painel ----------
+  async function chamarApi(metodo, caminho, corpo) {
+    const opcoes = { method: metodo, headers: {} };
+    if (corpo !== undefined) {
+      opcoes.headers["Content-Type"] = "application/json";
+      opcoes.body = JSON.stringify(corpo);
+    }
+    let resposta;
+    try {
+      resposta = await fetch(API + caminho, opcoes);
+    } catch (erro) {
+      registrar(metodo, caminho, 0, corpo, "a API não respondeu");
+      marcarApi(false);
+      return { ok: false, status: 0, dados: { mensagem: "Não foi possível falar com a API. Ela está rodando?" } };
+    }
+    marcarApi(true);
+    const bruto = await resposta.text();
+    let dados;
+    try {
+      dados = bruto ? JSON.parse(bruto) : null;
+    } catch {
+      dados = { mensagem: `A API respondeu ${resposta.status} sem JSON. A rota existe?` };
+    }
+    registrar(metodo, caminho, resposta.status, corpo, bruto);
+    return { ok: resposta.ok, status: resposta.status, dados };
+  }
+
+  function registrar(metodo, caminho, status, corpo, resposta) {
+    const log = $("#log");
+    if (log.querySelector(".vazio")) log.innerHTML = "";
+    const item = document.createElement("div");
+    item.className = "log-item";
+    item.append(texto("span", metodo, "metodo"));
+    item.append(texto("span", status || "—", `st s${String(status)[0]}`));
+    const partes = [caminho];
+    if (corpo !== undefined) partes.push("enviado:  " + JSON.stringify(corpo));
+    if (resposta) partes.push("recebido: " + (resposta.length > 300 ? resposta.slice(0, 300) + "..." : resposta));
+    item.append(texto("span", partes.join("\n"), "detalhe"));
+    log.prepend(item);
+  }
+
+  function marcarApi(online) {
+    const el = $("#estado-api");
+    el.textContent = online ? "API conectada" : "API fora do ar";
+    el.className = `estado-api ${online ? "on" : "off"}`;
+  }
+
+  function mostrarAviso(alvo, ok, status, mensagem) {
+    const caixa = $(alvo);
+    caixa.innerHTML = "";
+    const aviso = document.createElement("p");
+    aviso.className = `aviso ${ok ? "ok" : "erro"}`;
+    if (status) aviso.append(texto("span", `${status} · `, "codigo"));
+    aviso.append(document.createTextNode(mensagem || (ok ? "Feito." : "Algo deu errado.")));
+    caixa.append(aviso);
+  }
+
+  // ---------- Cardápio ----------
+  async function carregarCardapio() {
+    const r = await chamarApi("GET", "/produtos");
+    const area = $("#cardapio");
+    area.innerHTML = "";
+    if (!r.ok || !Array.isArray(r.dados)) {
+      area.append(texto("p", r.dados?.mensagem || "Não foi possível carregar o cardápio.", "vazio"));
+      return;
+    }
+    produtos = r.dados;
+    const categorias = [...new Set(produtos.map((p) => p.categoria))];
+    for (const categoria of categorias) {
+      area.append(texto("p", categoria, "categoria"));
+      const grade = document.createElement("div");
+      grade.className = "produtos";
+      for (const produto of produtos.filter((p) => p.categoria === categoria)) {
+        grade.append(cartaoProduto(produto));
+      }
+      area.append(grade);
+    }
+  }
+
+  function cartaoProduto(produto) {
+    const cartao = document.createElement("div");
+    const disponivel = produto.disponivel === undefined || produto.disponivel === true || produto.disponivel === 1;
+    cartao.className = `produto${disponivel ? "" : " indisponivel"}`;
+    cartao.append(texto("span", produto.nome, "nome"));
+    cartao.append(texto("span", dinheiro(produto.preco), "preco"));
+    if (!disponivel) cartao.append(texto("span", "indisponível", "etiqueta"));
+
+    const acoes = document.createElement("div");
+    acoes.className = "acoes";
+    const quantidade = document.createElement("input");
+    quantidade.type = "number";
+    quantidade.value = "1";
+    quantidade.setAttribute("aria-label", `Quantidade de ${produto.nome}`);
+    const botao = texto("button", "Adicionar");
+    botao.type = "button";
+    // De propósito, a tela deixa adicionar o produto indisponível:
+    // quem tem que recusar é a API (409).
+    botao.addEventListener("click", () => {
+      const qtd = Number(quantidade.value);
+      carrinho.set(produto.id, (carrinho.get(produto.id) || 0) + qtd);
+      desenharCarrinho();
+    });
+    acoes.append(quantidade, botao);
+    cartao.append(acoes);
+    return cartao;
+  }
+
+  // ---------- Carrinho e pedido ----------
+  function desenharCarrinho() {
+    const area = $("#carrinho");
+    area.innerHTML = "";
+    if (carrinho.size === 0) {
+      area.append(texto("p", "Nenhum item ainda.", "vazio"));
+      $("#total-estimado").textContent = dinheiro(0);
+      return;
+    }
+    let total = 0;
+    for (const [produtoId, quantidade] of carrinho) {
+      const produto = produtos.find((p) => p.id === produtoId);
+      const nome = produto ? produto.nome : `produto ${produtoId}`;
+      if (produto) total += produto.preco * quantidade;
+      const linha = document.createElement("div");
+      linha.className = "carrinho-item";
+      linha.append(texto("span", `${quantidade}× ${nome}`));
+      const remover = texto("button", "remover");
+      remover.type = "button";
+      remover.className = "secundario";
+      remover.addEventListener("click", () => {
+        carrinho.delete(produtoId);
+        desenharCarrinho();
+      });
+      linha.append(remover);
+      area.append(linha);
+    }
+    $("#total-estimado").textContent = dinheiro(total);
+  }
+
+  async function fazerPedido() {
+    const corpo = {
+      cliente: $("#cliente").value,
+      itens: [...carrinho].map(([produtoId, quantidade]) => ({ produtoId, quantidade })),
+    };
+    const r = await chamarApi("POST", "/pedidos", corpo);
+    if (!r.ok) {
+      mostrarAviso("#aviso-pedido", false, r.status, r.dados?.mensagem);
+      return;
+    }
+    const pedido = r.dados;
+    mostrarAviso("#aviso-pedido", true, r.status, `Pedido ${pedido.id} recebido. Total calculado pela API: ${dinheiro(pedido.total)}.`);
+    carrinho.clear();
+    desenharCarrinho();
+    await abrirPedido(pedido.id);
+  }
+
+  // ---------- Acompanhar pedidos ----------
+  async function abrirPedido(id) {
+    const r = await chamarApi("GET", `/pedidos/${id}`);
+    if (!r.ok) {
+      mostrarAviso("#aviso-acompanhar", false, r.status, r.dados?.mensagem);
+      return;
+    }
+    $("#aviso-acompanhar").innerHTML = "";
+    pedidosNaTela.set(r.dados.id, r.dados);
+    desenharPedidos();
+  }
+
+  async function mudarStatus(id, status) {
+    const r = await chamarApi("PATCH", `/pedidos/${id}/status`, { status });
+    if (!r.ok) {
+      mostrarAviso("#aviso-acompanhar", false, r.status, r.dados?.mensagem);
+      return;
+    }
+    await abrirPedido(id);
+    mostrarAviso("#aviso-acompanhar", true, r.status, `Pedido ${id} agora está ${status}.`);
+  }
+
+  function desenharPedidos() {
+    const area = $("#pedidos");
+    area.innerHTML = "";
+    const lista = [...pedidosNaTela.values()].sort((a, b) => b.id - a.id);
+    for (const pedido of lista) {
+      const cartao = document.createElement("div");
+      cartao.className = "pedido";
+      const topo = document.createElement("div");
+      topo.className = "topo";
+      topo.append(texto("strong", `#${pedido.id} · ${pedido.cliente}`));
+      topo.append(texto("span", pedido.status, `status ${pedido.status}`));
+      cartao.append(topo);
+
+      if (Array.isArray(pedido.itens)) {
+        const itens = document.createElement("ul");
+        for (const item of pedido.itens) {
+          itens.append(texto("li", `${item.quantidade}× ${item.nome ?? "produto " + item.produtoId} · ${dinheiro(item.precoUnitario)}`));
+        }
+        cartao.append(itens);
+      }
+      cartao.append(texto("p", `Total: ${dinheiro(pedido.total)}`, "sub"));
+
+      // Os botões do próximo passo aparecem em destaque. Os outros também ficam,
+      // de propósito: clicar num status fora da ordem mostra o 409 da API.
+      const botoes = document.createElement("div");
+      botoes.className = "botoes";
+      const seguintes = STATUS_SEGUINTES[pedido.status] || [];
+      for (const status of TODOS_STATUS.filter((s) => s !== pedido.status)) {
+        const botao = texto("button", status);
+        botao.type = "button";
+        if (!seguintes.includes(status)) botao.className = "secundario";
+        botao.addEventListener("click", () => mudarStatus(pedido.id, status));
+        botoes.append(botao);
+      }
+      cartao.append(botoes);
+      area.append(cartao);
+    }
+  }
+
+  // ---------- Eventos ----------
+  $("#fazer-pedido").addEventListener("click", fazerPedido);
+  $("#limpar").addEventListener("click", () => {
+    carrinho.clear();
+    desenharCarrinho();
+    $("#aviso-pedido").innerHTML = "";
+  });
+  $("#buscar").addEventListener("click", () => {
+    const id = $("#id-busca").value.trim();
+    if (id) abrirPedido(id);
+  });
+
+  carregarCardapio();
+</script>
+</body>
+</html>

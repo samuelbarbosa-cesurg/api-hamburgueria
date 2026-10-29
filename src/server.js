@@ -4,6 +4,8 @@ import * as produtoController from "./controllers/produtoController.js";
 import * as pedidoController from "./controllers/pedidoController.js";
 
 const app = express();
+app.use("/app", express.static("public"));
+
 const PORTA = Number(process.env.PORT || 3000);
 
 // Permite que o SimuladorRequest.html seja aberto fora deste projeto.
