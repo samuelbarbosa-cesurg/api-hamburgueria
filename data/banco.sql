@@ -26,6 +26,13 @@ CREATE TABLE IF NOT EXISTS itens_pedido (
   precoUnitario REAL NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS funcionarios (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+nome TEXT NOT NULL,
+email TEXT NOT NULL UNIQUE,
+senhaHash TEXT NOT NULL
+);
+
 INSERT OR IGNORE INTO produtos (id, nome, categoria, preco, disponivel)
   VALUES
   (1, 'X-Burger', 'lanche', 25.0, 1),
